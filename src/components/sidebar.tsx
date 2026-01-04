@@ -38,7 +38,7 @@ export function Sidebar() {
       <div className='p-6 border-b border-border'>
         <div className='flex items-center gap-3'>
           <div className='size-10 bg-primary rounded flex items-center justify-center'>
-            <Glasses className='size-6 text-black' />
+            <Glasses className='size-6 dark:text-black text-white' />
           </div>
           <div>
             <h1 className='text-xl font-display font-bold tracking-tight'>

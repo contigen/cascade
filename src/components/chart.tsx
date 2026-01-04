@@ -9,10 +9,7 @@ import {
   ChartTooltip,
   ChartTooltipContent,
 } from '@/components/ui/chart'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { cn } from '@/lib/utils'
-
-type TimePeriod = 'week' | 'month' | 'year'
 
 type ChartDataPoint = {
   date: string
@@ -31,47 +28,15 @@ const chartConfig = {
   },
 } satisfies ChartConfig
 
-const CASCADE_CHART_DATA = {
-  week: [
-    { date: 'MON', spending: 12, limit: 50 },
-    { date: 'TUE', spending: 45, limit: 50 },
-    { date: 'WED', spending: 34, limit: 50 },
-    { date: 'THU', spending: 15, limit: 50 },
-    { date: 'FRI', spending: 28, limit: 50 },
-    { date: 'SAT', spending: 8, limit: 50 },
-    { date: 'SUN', spending: 10, limit: 50 },
-  ],
-  month: [
-    { date: 'JAN', spending: 800, limit: 1500 },
-    { date: 'FEB', spending: 1200, limit: 1500 },
-    { date: 'MAR', spending: 950, limit: 1500 },
-    { date: 'APR', spending: 1400, limit: 1500 },
-    { date: 'MAY', spending: 1100, limit: 1500 },
-    { date: 'JUN', spending: 700, limit: 1500 },
-    { date: 'JUL', spending: 1050, limit: 1500 },
-    { date: 'AUG', spending: 900, limit: 1500 },
-    { date: 'SEP', spending: 1300, limit: 1500 },
-    { date: 'OCT', spending: 1150, limit: 1500 },
-    { date: 'NOV', spending: 1250, limit: 1500 },
-    { date: 'DEC', spending: 1450, limit: 1500 },
-  ],
-  year: [
-    { date: '2021', spending: 8500, limit: 18000 },
-    { date: '2022', spending: 12000, limit: 18000 },
-    { date: '2023', spending: 15500, limit: 18000 },
-    { date: '2024', spending: 14000, limit: 18000 },
-    { date: '2025', spending: 16500, limit: 18000 },
-  ],
+type ChartData = {
+  week: ChartDataPoint[]
 }
 
-export function DashboardChart() {
-  const [activeTab, setActiveTab] = React.useState<TimePeriod>('week')
+type DashboardChartProps = {
+  data?: ChartData
+}
 
-  const handleTabChange = (value: string) => {
-    if (value === 'week' || value === 'month' || value === 'year') {
-      setActiveTab(value as TimePeriod)
-    }
-  }
+export function DashboardChart({ data }: DashboardChartProps) {
 
   const formatYAxisValue = (value: number) => {
     if (value === 0) return ''
@@ -79,13 +44,34 @@ export function DashboardChart() {
     return `$${value}`
   }
 
-  const renderChart = (data: ChartDataPoint[]) => {
+  const hasEnoughData = (chartData: ChartDataPoint[], minPoints: number) => {
+    return chartData.length >= minPoints && chartData.some(d => d.spending > 0)
+  }
+
+  const renderChart = (chartData: ChartDataPoint[], minPoints: number) => {
+    const hasData = hasEnoughData(chartData, minPoints)
+
+    if (!hasData) {
+      return (
+        <div className='bg-muted/20 rounded-lg p-8 border border-border/50 opacity-50'>
+          <div className='text-center text-muted-foreground'>
+            <p className='text-sm font-medium mb-1'>Insufficient Data</p>
+            <p className='text-xs'>
+              {chartData.length === 0
+                ? 'No activity data available yet'
+                : 'Not enough data points to display chart'}
+            </p>
+          </div>
+        </div>
+      )
+    }
+
     return (
       <div className='bg-accent/20 rounded-lg p-3 border border-border'>
         <ChartContainer className='md:aspect-[3/1] w-full' config={chartConfig}>
           <AreaChart
             accessibilityLayer
-            data={data}
+            data={chartData}
             margin={{
               left: -12,
               right: 12,
@@ -163,47 +149,15 @@ export function DashboardChart() {
   }
 
   return (
-    <Tabs
-      value={activeTab}
-      onValueChange={handleTabChange}
-      className='max-md:gap-4'
-    >
-      <div className='flex items-center justify-between mb-4 max-md:contents'>
-        <TabsList className='bg-transparent border border-border p-1'>
-          <TabsTrigger
-            value='week'
-            className='data-[state=active]:bg-primary data-[state=active]:text-primary-foreground text-[10px] font-mono px-4 py-1.5'
-          >
-            WEEK
-          </TabsTrigger>
-          <TabsTrigger
-            value='month'
-            className='data-[state=active]:bg-primary data-[state=active]:text-primary-foreground text-[10px] font-mono px-4 py-1.5'
-          >
-            MONTH
-          </TabsTrigger>
-          <TabsTrigger
-            value='year'
-            className='data-[state=active]:bg-primary data-[state=active]:text-primary-foreground text-[10px] font-mono px-4 py-1.5'
-          >
-            YEAR
-          </TabsTrigger>
-        </TabsList>
-        <div className='flex items-center gap-6 max-md:order-1'>
+    <div>
+      <div className='flex items-center justify-end mb-4'>
+        <div className='flex items-center gap-6'>
           <ChartLegend label='SPENDING' color='var(--primary)' />
           <ChartLegend label='LIMIT' color='var(--muted-foreground)' dashed />
         </div>
       </div>
-      <TabsContent value='week' className='mt-0'>
-        {renderChart(CASCADE_CHART_DATA.week)}
-      </TabsContent>
-      <TabsContent value='month' className='mt-0'>
-        {renderChart(CASCADE_CHART_DATA.month)}
-      </TabsContent>
-      <TabsContent value='year' className='mt-0'>
-        {renderChart(CASCADE_CHART_DATA.year)}
-      </TabsContent>
-    </Tabs>
+      {renderChart(data?.week || [], 2)}
+    </div>
   )
 }
 

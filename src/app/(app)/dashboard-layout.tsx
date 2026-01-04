@@ -14,7 +14,7 @@ export function DashboardPageLayout({
   return (
     <div className='flex flex-col relative w-full gap-1 min-h-full'>
       <div className='flex items-center lg:items-baseline gap-2.5 md:gap-4 px-4 md:px-6 py-3 md:pb-4 lg:pt-7 ring-2 ring-pop sticky top-header-mobile lg:top-0 bg-background z-10'>
-        <h1 className='text-xl md:text-2xl lg:text-4xl font-display mb-1 uppercase font-bold'>
+        <h1 className='text-xl md:text-2xl lg:text-4xl font-display mb-1 uppercase font-bold tracking-tight'>
           {header.title}
         </h1>
         {header.description && (

@@ -8,7 +8,6 @@ import {
   createPublicClient,
   createWalletClient,
   custom,
-  encodeFunctionData,
   http,
   parseUnits,
 } from 'viem'

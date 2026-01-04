@@ -8,8 +8,57 @@ datasource db {
 }
 
 model User {
-  id        String   @id @default(uuid())
-  walletAddress String @unique
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id            String        @id @default(uuid())
+  walletAddress String        @unique
+  subscriptions Subscription[]
+  createdAt      DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+}
+
+model Agent {
+  id          String        @id @default(uuid())
+  name        String        @unique
+  description String
+  cost        String
+  can         String[]
+  cannot      String[]
+  subscriptions Subscription[]
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+}
+
+model Subscription {
+  id                String     @id @default(uuid())
+  userId            String
+  agentId           String
+  sessionAddress    String
+  permissionContext String
+  delegationManager String
+  chainId           String
+  status            String     @default("active")
+  user              User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  agent             Agent      @relation(fields: [agentId], references: [id], onDelete: Cascade)
+  logs              AgentLog[]
+  createdAt         DateTime   @default(now())
+  updatedAt         DateTime   @updatedAt
+
+  @@unique([userId, agentId])
+  @@index([userId, agentId])
+}
+
+model AgentLog {
+  id             String       @id @default(uuid())
+  subscriptionId String
+  agentName      String
+  action         String
+  status         String
+  transactionHash String?
+  gasUsed        String?
+  error          String?
+  metadata       Json?
+  subscription   Subscription @relation(fields: [subscriptionId], references: [id], onDelete: Cascade)
+  createdAt      DateTime     @default(now())
+
+  @@index([subscriptionId])
+  @@index([createdAt])
 }

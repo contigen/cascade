@@ -4,7 +4,6 @@ import { Glasses } from 'lucide-react'
 import { signIn } from 'next-auth/react'
 import { use, useState } from 'react'
 import { toast } from 'sonner'
-import { getSessionAccount } from '@/actions'
 import { ShieldIcon, WalletIcon, ZapIcon } from '@/app/icons'
 import { ThemeToggle } from '@/components/theme-toggle'
 import { Badge } from '@/components/ui/badge'
@@ -16,16 +15,15 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card'
-import { checkForSmartAccountUpgrade, requestPermissions } from '@/lib/viem'
+import { checkForSmartAccountUpgrade } from '@/lib/viem'
 import { connectWallet } from '@/lib/wallet'
 
 export default function WalletConnectPage({
   searchParams,
 }: PageProps<'/connect'>) {
   const errorParam = use(searchParams).error as string | undefined
-  const [address, setAddress] = useState<string | null>(null)
   const [pending, setPending] = useState(false)
-  const [pendingPermissions, setPendingPermissions] = useState(false)
+  const [address, setAddress] = useState<string | null>(null)
 
   async function handleConnect() {
     setPending(true)
@@ -58,32 +56,6 @@ export default function WalletConnectPage({
     }
   }
 
-  async function handleRequestPermissions() {
-    if (!address) {
-      toast.warning('Please connect your wallet first')
-      return
-    }
-
-    setPendingPermissions(true)
-    try {
-      const sessionAddress = await getSessionAccount()
-      const grantedPermissions = await requestPermissions(sessionAddress)
-      console.log('grantedPermissions', grantedPermissions)
-      if (grantedPermissions?.length) {
-        const permission = grantedPermissions[0]
-        toast.success('Permissions granted successfully', {
-          description: `Context: ${permission.context.slice(0, 10)}...`,
-        })
-      } else {
-        toast.warning('No permissions were granted')
-      }
-    } catch {
-      toast.error('Failed to request permissions')
-    } finally {
-      setPendingPermissions(false)
-    }
-  }
-
   return (
     <div className='min-h-screen bg-background flex flex-col items-center justify-center p-6 relative overflow-hidden'>
       <div className='absolute top-0 left-0 w-full h-full pointer-events-none opacity-5'>
@@ -108,8 +80,7 @@ export default function WalletConnectPage({
             </h2>
             <p className='text-muted-foreground max-w-md leading-relaxed'>
               Cascade enables wallet-native recurring payments and agent
-              permissions via ERC-7715. Connect your smart account to manage
-              autonomous workflows with complete safety bounds.
+              permissions via ERC-7715.
             </p>
           </div>
 
@@ -197,14 +168,6 @@ export default function WalletConnectPage({
                   </Badge>
                 </ButtonWithSpinner>
               ))}
-              <ButtonWithSpinner
-                className='group border-primary transition-all mb-3 bg-primary w-full uppercase tracking-tight'
-                onClick={handleRequestPermissions}
-                pending={pendingPermissions}
-                strokeColor='white'
-              >
-                Request Permissions
-              </ButtonWithSpinner>
             </CardContent>
           </Card>
         </div>
